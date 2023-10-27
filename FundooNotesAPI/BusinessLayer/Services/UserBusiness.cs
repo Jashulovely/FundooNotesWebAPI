@@ -20,6 +20,11 @@ namespace BusinessLayer.Services
         {
             return userRepo.UserRegistration(model);
         }
+        public bool IsRegisteredAlready(string email)
+        {
+            return userRepo.IsRegisteredAlready(email);
+        }
+
         public string UserLogin(LoginModel login)
         {
             return userRepo.UserLogin(login);

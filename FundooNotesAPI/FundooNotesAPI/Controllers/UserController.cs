@@ -21,6 +21,13 @@ namespace FundooNotesAPI.Controllers
         //localhost:6789/api/User/Register
         public IActionResult Registration(RegisterModel model)
         {
+            var isExists = userBusiness.IsRegisteredAlready(model.Email);
+            if (isExists)
+            {
+                return Ok(new ResponseModel<string> { Status = true, Message = "Email exists already..." });
+            }
+            else
+            {
                 var result = userBusiness.UserRegistration(model);
                 if (result != null)
                 {
@@ -30,6 +37,7 @@ namespace FundooNotesAPI.Controllers
                 {
                     return BadRequest(new ResponseModel<UserEntity> { Status = false, Message = "Registration Failed." });
                 }
+            }
         }
 
         [HttpPost]
@@ -38,7 +46,7 @@ namespace FundooNotesAPI.Controllers
         public IActionResult Login(LoginModel login)
         {
             var result = userBusiness.UserLogin(login);
-            if (result == "Login Successfull")
+            if (result != null)
             {
                 return Ok(new ResponseModel<string> { Status = true, Message = "login successfull", Data = result });
             }

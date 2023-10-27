@@ -10,5 +10,6 @@ namespace RepositoryLayer.Interfaces
     {
        public UserEntity UserRegistration(RegisterModel model);
        public string UserLogin(LoginModel login);
+        public bool IsRegisteredAlready(string email);
     }
 }
