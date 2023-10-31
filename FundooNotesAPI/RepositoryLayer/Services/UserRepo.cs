@@ -5,6 +5,7 @@ using RepositoryLayer.Context;
 using RepositoryLayer.Entity;
 using RepositoryLayer.Interfaces;
 using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
@@ -41,19 +42,47 @@ namespace RepositoryLayer.Services
                 return null;
             }
         }
+
+        public List<UserEntity> UsersList()
+        {
+            try
+            {
+                List<UserEntity> users = (List<UserEntity>)fundoocontext.Users.ToList();
+                return users;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
         public bool IsRegisteredAlready(string email)
+        {
+            var checkEmail = fundoocontext.Users.Where(x => x.Email == email).Count();
+            return checkEmail > 0;
+        }
+
+        public bool IsEmailExists(string email)
         {
             var checkEmail = fundoocontext.Users.Where(x => x.Email == email).Count();
             return checkEmail > 0;
         }
         public string UserLogin(LoginModel login)
         {
+            var encodePwd = EncryptPassword(login.Password);
             UserEntity checkEmail = fundoocontext.Users.FirstOrDefault(x => x.Email == login.Email);
-            UserEntity checkPwd = fundoocontext.Users.FirstOrDefault(y => y.Password == login.Password);
+            UserEntity checkPwd = fundoocontext.Users.FirstOrDefault(y => y.Password == encodePwd);
             if (checkEmail != null)
             {
-                var token = GenerateToken(checkEmail.Email, checkEmail.UserId);
-                return token;
+                if (checkPwd != null)
+                {
+                    var token = GenerateToken(checkEmail.Email, checkEmail.UserId);
+                    return token;
+                }
+                else
+                {
+                    return null;
+                }
             }
             else
             {
@@ -94,6 +123,29 @@ namespace RepositoryLayer.Services
 
             return new JwtSecurityTokenHandler().WriteToken(token);
 
+        }
+
+        public string ForgetPassword(string EmailId)
+        {
+            try
+            {
+                var result = fundoocontext.Users.FirstOrDefault(x => x.Email == EmailId);
+                if(result != null)
+                {
+                    var token = this.GenerateToken(result.Email, result.UserId);
+                    MSMQModel mSMQModel = new MSMQModel();
+                    mSMQModel.SendMessage(token, result.Email, result.FirstName);
+                    return token.ToString();
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
 
 

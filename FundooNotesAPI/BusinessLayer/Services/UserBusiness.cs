@@ -25,9 +25,24 @@ namespace BusinessLayer.Services
             return userRepo.IsRegisteredAlready(email);
         }
 
+        public bool IsEmailExists(string email)
+        {
+            return userRepo.IsEmailExists(email);
+        }
+
         public string UserLogin(LoginModel login)
         {
             return userRepo.UserLogin(login);
+        }
+
+        public List<UserEntity> UsersList()
+        {
+            return userRepo.UsersList();
+        }
+
+        public string ForgetPassword(string EmailId)
+        {
+            return userRepo.ForgetPassword(EmailId);
         }
     }
 }

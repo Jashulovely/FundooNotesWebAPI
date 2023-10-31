@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ModelLayer.Models;
 using RepositoryLayer.Entity;
+using System.Collections.Generic;
 
 namespace FundooNotesAPI.Controllers
 {
@@ -40,6 +41,39 @@ namespace FundooNotesAPI.Controllers
             }
         }
 
+
+        [HttpGet]
+        [Route("UsersList")]
+        public IActionResult UsersList()
+        {
+            List<UserEntity> allUsers = userBusiness.UsersList();
+            if(allUsers != null)
+            {
+                return Ok(new ResponseModel<List<UserEntity>> { Status = true, Message = "All Users", Data = allUsers });
+            }
+            else
+            {
+                return BadRequest(new ResponseModel<List<UserEntity>> { Status = false, Message = "Users not exists."});
+            }
+        }
+
+
+        [HttpPost]
+        [Route("CheckEmail")]
+        //localhost:6789/api/User/CheckEmail
+        public IActionResult CheckEmailExists(CheckEmailModel model)
+        {
+            var emailExists = userBusiness.IsEmailExists(model.Email);
+            if (emailExists)
+            {
+                return Ok(new ResponseModel<string> { Status = true, Message = "Email exists already..." });
+            }
+            else
+            {
+                return BadRequest(new ResponseModel<UserEntity> { Status = false, Message = "Email not exists." });
+            }
+        }
+
         [HttpPost]
         [Route("login")]
         //localhost:6789/api/User/login
@@ -55,6 +89,22 @@ namespace FundooNotesAPI.Controllers
                 return BadRequest(new ResponseModel<string> { Status = false, Message = "login failed" });
             }
 
+        }
+
+        [HttpPost]
+        [Route("ForgotPassword")]
+        //localhost:6789/api/User/ForgotPassword
+        public IActionResult ForgotPassword(string EmailId)
+        {
+            var result = userBusiness.ForgetPassword(EmailId);
+            if(result != null)
+            {
+                return Ok(new ResponseModel<string> { Status = true, Message = "mail sent successfull.", Data = result });
+            }
+            else
+            {
+                return BadRequest(new ResponseModel<string> { Status = false, Message = "mail sending failed." });
+            }
         }
     }
 }
