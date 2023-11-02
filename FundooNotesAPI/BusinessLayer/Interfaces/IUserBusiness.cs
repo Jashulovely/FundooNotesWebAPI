@@ -14,6 +14,7 @@ namespace BusinessLayer.Interfaces
         public bool IsEmailExists(string email);
         public List<UserEntity> UsersList();
         public string ForgetPassword(string EmailId);
+        public bool ResetnewPassword(string Email, ResetPwdModel reset);
 
     }
 }

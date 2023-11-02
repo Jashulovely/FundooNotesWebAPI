@@ -1,9 +1,11 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using ModelLayer.Models;
 using RepositoryLayer.Context;
 using RepositoryLayer.Entity;
 using RepositoryLayer.Interfaces;
+using RepositoryLayer.Migrations;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -42,6 +44,7 @@ namespace RepositoryLayer.Services
                 return null;
             }
         }
+        
 
         public List<UserEntity> UsersList()
         {
@@ -55,6 +58,8 @@ namespace RepositoryLayer.Services
                 throw;
             }
         }
+
+       
 
         public bool IsRegisteredAlready(string email)
         {
@@ -70,7 +75,7 @@ namespace RepositoryLayer.Services
         public string UserLogin(LoginModel login)
         {
             var encodePwd = EncryptPassword(login.Password);
-            UserEntity checkEmail = fundoocontext.Users.FirstOrDefault(x => x.Email == login.Email);
+            UserEntity checkEmail = fundoocontext.Users.Where(x => x.Email == login.Email).FirstOrDefault();
             UserEntity checkPwd = fundoocontext.Users.FirstOrDefault(y => y.Password == encodePwd);
             if (checkEmail != null)
             {
@@ -86,7 +91,7 @@ namespace RepositoryLayer.Services
             }
             else
             {
-                return "Login failed";
+                return null;
             }
         }
 
@@ -145,6 +150,30 @@ namespace RepositoryLayer.Services
             catch (Exception)
             {
                 throw;
+            }
+        }
+
+        public bool ResetnewPassword(string Email, ResetPwdModel reset)
+        {
+            var pwd = EncryptPassword(reset.Password);
+            var confpwd = EncryptPassword(reset.ConfirmPassword);
+            try
+            {
+                if (pwd.Equals(confpwd))
+                {
+                    var user = fundoocontext.Users.Where(x => x.Email == Email).FirstOrDefault();
+                    user.Password = confpwd;
+                    fundoocontext.SaveChanges();
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch(Exception) 
+            { 
+                throw; 
             }
         }
 

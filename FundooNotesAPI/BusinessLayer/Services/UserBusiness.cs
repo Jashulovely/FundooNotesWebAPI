@@ -44,5 +44,10 @@ namespace BusinessLayer.Services
         {
             return userRepo.ForgetPassword(EmailId);
         }
+
+        public bool ResetnewPassword(string Email, ResetPwdModel reset)
+        {
+            return userRepo.ResetnewPassword(Email, reset);
+        }
     }
 }

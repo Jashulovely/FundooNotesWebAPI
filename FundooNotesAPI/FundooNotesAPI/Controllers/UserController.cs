@@ -1,10 +1,12 @@
 ﻿using BusinessLayer.Interfaces;
 using BusinessLayer.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ModelLayer.Models;
 using RepositoryLayer.Entity;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace FundooNotesAPI.Controllers
 {
@@ -106,5 +108,24 @@ namespace FundooNotesAPI.Controllers
                 return BadRequest(new ResponseModel<string> { Status = false, Message = "mail sending failed." });
             }
         }
+        [Authorize]
+        [HttpPut]
+        [Route("ResetNewPassword")]
+        //localhost:6789/api/User/ResetNewPassword
+        public IActionResult ResetnewPassword(ResetPwdModel reset)
+        {
+            string email = User.Claims.FirstOrDefault(x => x.Type == "Email").Value;
+            var result = userBusiness.ResetnewPassword(email, reset);
+            if (result != null)
+            {
+                return Ok(new ResponseModel<ResetPwdModel> { Status = true, Message = "resetted password successfully." });
+            }
+            else
+            {
+                return BadRequest(new ResponseModel<ResetPwdModel> { Status = false, Message = "password resetting failed." });
+            }
+        }
+
+
     }
 }
