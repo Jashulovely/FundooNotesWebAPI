@@ -35,9 +35,24 @@ namespace BusinessLayer.Services
             return userRepo.UserLogin(login);
         }
 
+        public UserEntity LogginSession(LoginModel login)
+        {
+            return userRepo.LogginSession(login);
+        }
+
         public List<UserEntity> UsersList()
         {
             return userRepo.UsersList();
+        }
+
+        public UserEntity UserInfo(int userid)
+        {
+            return userRepo.UserInfo(userid);   
+        }
+
+        public bool UpdateUser(int userid, UserUpdateModel model)
+        {
+            return userRepo.UpdateUser(userid, model);
         }
 
         public string ForgetPassword(string EmailId)
@@ -48,6 +63,11 @@ namespace BusinessLayer.Services
         public bool ResetnewPassword(string Email, ResetPwdModel reset)
         {
             return userRepo.ResetnewPassword(Email, reset);
+        }
+
+        public UserTicketModel CreateTicketForPassword(string emailId, string token)
+        {
+            return userRepo.CreateTicketForPassword(emailId, token);
         }
     }
 }

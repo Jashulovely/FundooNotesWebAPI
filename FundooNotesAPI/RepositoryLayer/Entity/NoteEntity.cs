@@ -36,5 +36,6 @@ namespace RepositoryLayer.Entity
         public int UserId { get; set; }
         [JsonIgnore]
         public virtual UserEntity Users { get; set; }
+
     }
 }

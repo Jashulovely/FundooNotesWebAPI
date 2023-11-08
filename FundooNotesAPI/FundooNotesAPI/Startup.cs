@@ -1,11 +1,13 @@
 using BusinessLayer.Interfaces;
 using BusinessLayer.Services;
+using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -27,11 +29,9 @@ namespace FundooNotesAPI
     {
         public Startup(IConfiguration configuration)
         {
-            Configuration = configuration;
+            this.Configuration = configuration;
         }
-
         public IConfiguration Configuration { get; }
-
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
@@ -41,6 +41,10 @@ namespace FundooNotesAPI
             services.AddTransient<IUserBusiness, UserBusiness>();
             services.AddTransient<INoteRepo, NoteRepo>();
             services.AddTransient<INoteBusiness, NoteBusiness>();
+            services.AddTransient<ILabelRepo, LabelRepo>();
+            services.AddTransient<ILabelBusiness, LabelBusiness>();
+            services.AddTransient<ICollabRepo, CollabRepo>();
+            services.AddTransient<ICollabBusiness, CollabBusiness>();
             services.AddSwaggerGen(option =>
             {
                 option.SwaggerDoc("v1", new OpenApiInfo { Title = "Demo API", Version = "v1" });
@@ -88,16 +92,45 @@ namespace FundooNotesAPI
                     IssuerSigningKey = new SymmetricSecurityKey(Key)
                 };
             });
+
+
+            services.AddMassTransit(x =>
+            {
+                x.AddBus(provider => Bus.Factory.CreateUsingRabbitMq(config =>
+                {
+                    config.UseHealthCheck(provider);
+                    config.Host(new Uri("rabbitmq://localhost"), h =>
+                    {
+                        h.Username("guest");
+                        h.Password("guest");
+                    });
+                }));
+            });
+            services.AddMassTransitHostedService();
+            services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = "localhost:6379";
+            });
+            services.AddMemoryCache();
+
+            services.AddSession(options =>
+            {
+                options.IdleTimeout = TimeSpan.FromMinutes(120);
+                options.Cookie.HttpOnly = true;
+                options.Cookie.IsEssential = true;
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
             app.UseAuthentication();
+            app.UseSession();
 
             app.UseHttpsRedirection();
             // This middleware serves generated Swagger document as a JSON endpoint
@@ -117,6 +150,8 @@ namespace FundooNotesAPI
             {
                 endpoints.MapControllers();
             });
+
+            
         }
     }
 }

@@ -5,7 +5,6 @@ using ModelLayer.Models;
 using RepositoryLayer.Context;
 using RepositoryLayer.Entity;
 using RepositoryLayer.Interfaces;
-using RepositoryLayer.Migrations;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -53,13 +52,73 @@ namespace RepositoryLayer.Services
                 List<UserEntity> users = (List<UserEntity>)fundoocontext.Users.ToList();
                 return users;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                throw ex;
             }
         }
 
-       
+        public UserEntity UserInfo(int userid)
+        {
+            try
+            {
+                UserEntity user = (UserEntity)fundoocontext.Users.FirstOrDefault(u => u.UserId == userid);
+                if (user != null)
+                {
+                    return user;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+
+        public bool UpdateUser(int userid, UserUpdateModel model)
+        {
+            try
+            {
+                var result = fundoocontext.Users.FirstOrDefault(e => e.UserId == userid);
+                if (result != null)
+                {
+                    if (model.FirstName != null)
+                    {
+                        result.FirstName = model.FirstName;
+                    }
+                    if (model.LastName != null)
+                    {
+                        result.LastName = model.LastName;
+                    }
+                    if (model.Email != null)
+                    {
+                        result.Email = model.Email;
+                    }
+                    if (model.Password != null)
+                    {
+                        result.Password = EncryptPassword(model.Password);
+                    }
+
+                    fundoocontext.SaveChanges();
+
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+
 
         public bool IsRegisteredAlready(string email)
         {
@@ -88,6 +147,21 @@ namespace RepositoryLayer.Services
                 {
                     return null;
                 }
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+
+        public UserEntity LogginSession(LoginModel login)
+        {
+            var encodePwd = EncryptPassword(login.Password);
+            UserEntity result = fundoocontext.Users.Where(x => x.Email == login.Email && x.Password == encodePwd).FirstOrDefault();
+            if (result != null)
+            {
+                return result;
             }
             else
             {
@@ -147,9 +221,9 @@ namespace RepositoryLayer.Services
                     return null;
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                throw ex;
             }
         }
 
@@ -171,12 +245,38 @@ namespace RepositoryLayer.Services
                     return false;
                 }
             }
-            catch(Exception) 
+            catch(Exception ex) 
             { 
-                throw; 
+                throw ex; 
             }
         }
 
-
+        public UserTicketModel CreateTicketForPassword(string emailId, string token)
+        {
+            try
+            {
+                var userDetails = fundoocontext.Users.FirstOrDefault(u => u.Email == emailId);
+                if(userDetails != null)
+                {
+                    UserTicketModel ticketResponse = new UserTicketModel
+                    {
+                        FirstName = userDetails.FirstName,
+                        LastName = userDetails.LastName,
+                        EmailId = emailId,
+                        Token = token,
+                        IssuedAt = DateTime.Now
+                    };
+                    return ticketResponse;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch(Exception ex)
+            {
+                throw ex;
+            }
+        }
     }
 }
